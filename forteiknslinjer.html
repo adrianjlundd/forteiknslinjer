@@ -803,7 +803,9 @@
             const cleaned = str.replace(/\s/g, '');
             return cleaned.replace(/rot\(([^)]+)\)/gi, (match, content) => `\\sqrt{${stringToLatex(content)}}`)
                           .replace(/pi/gi, '\\pi')
-                          .replace(/\^/g, '^');
+                          .replace(/\^/g, '^')
+                          .replace(/ln\(([^)]+)\)/gi, (match, content) => `\\ln{${stringToLatex(content)}}`)
+                          .replace(/lg\(([^)]+)\)/gi, (match, content) => `\\log_{10}{${stringToLatex(content)}}`);
         }
 
         function parseValue(str) {
@@ -976,7 +978,24 @@
                 return { raw, latex, zero, zeroSymbol, eval: x => Math.sign(evalFunc(x)) };
             }
 
+            // Handle simple pure function forms like rot(x), ln(x), lg(x)
+            const funcVarMatch = cleaned.match(/^(-?)(rot|ln|lg)\(x\)$/i);
+            if (funcVarMatch) {
+                const isNegative = funcVarMatch[1] === '-';
+                const func = funcVarMatch[2].toLowerCase();
+                const sign = isNegative ? -1 : 1;
+            
+                if (func === 'rot') {
+                    return { raw, latex: (isNegative ? '-' : '') + `\\sqrt{x}`, zero: 0, zeroSymbol: '0', eval: x => Math.sign(sign * Math.sqrt(x)) };
+                } else if (func === 'ln') {
+                    return { raw, latex: (isNegative ? '-' : '') + `\\ln{x}`, zero: 1, zeroSymbol: '1', eval: x => Math.sign(sign * Math.log(x)) };
+                } else if (func === 'lg') {
+                    return { raw, latex: (isNegative ? '-' : '') + `\\log_{10}{x}`, zero: 1, zeroSymbol: '1', eval: x => Math.sign(sign * (Math.log(x) / Math.LN10)) };
+                }
+            }
+            
             // Fallback for constants
+
             const constantValResult = parseValue(cleaned);
             if (constantValResult && !isNaN(constantValResult.value)) {
                 return { 
