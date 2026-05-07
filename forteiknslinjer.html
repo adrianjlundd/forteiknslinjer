@@ -978,7 +978,7 @@
                 return { raw, latex, zero, zeroSymbol, eval: x => Math.sign(evalFunc(x)) };
             }
 
-            // Handle simple pure function forms like rot(x), ln(x), lg(x)
+            // Handle simple pure function forms like: rot(x), ln(x), lg(x)
             const funcVarMatch = cleaned.match(/^(-?)(rot|ln|lg)\(x\)$/i);
             if (funcVarMatch) {
                 const isNegative = funcVarMatch[1] === '-';
@@ -993,9 +993,8 @@
                     return { raw, latex: (isNegative ? '-' : '') + `\\log_{10}{x}`, zero: 1, zeroSymbol: '1', eval: x => Math.sign(sign * (Math.log(x) / Math.LN10)) };
                 }
             }
-            
-            // Fallback for constants
 
+            // Fallback for constants
             const constantValResult = parseValue(cleaned);
             if (constantValResult && !isNaN(constantValResult.value)) {
                 return { 
